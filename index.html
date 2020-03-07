@@ -5,6 +5,8 @@
 
 <!-- The website -->
 <h1>Cough Detection</h1>
+
+
 <h3>Cough Probability: </h3>
 <p id="cough_prob">-</p>
 <div class="box"><div id="cough_box"></div></div>
@@ -13,15 +15,15 @@
 <p id="bg_prob">-</p>
 <div class="box"><div id="bg_box"></div></div>
 
-<h3>Time:</h3>
-<p id="timer">0</p>
 <h3>Cough Duration:</h3>
 <p id="cough_count">0</p>
 <div id="box"></div>
 
 <!-- Start Button -->
 <button type="button" onclick="init()">Start</button>
-</div>
+
+
+
 
 <style type="text/css">
     body{
@@ -34,6 +36,7 @@
         height: 44px;
         margin-top:  5%;
         margin-bottom:  5%;
+        max-width: 500px
     }
 
     #label-container{
@@ -84,7 +87,6 @@
     // Fired at 30fps
     function timer_fire(){
         time += 1;
-        document.getElementById("timer").innerHTML = time;
         cough_check();
         update_ui();
     }
@@ -109,7 +111,7 @@
 <script type="text/javascript">
     cough_count = 0;
     function cough_check(){
-        if (cough_prob >.9) {
+        if (cough_prob >.85) {
         cough_count += 1;
     }
     }
