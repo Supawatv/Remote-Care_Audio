@@ -1,0 +1,176 @@
+<!-- Various Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/speech-commands@0.4.0/dist/speech-commands.min.js"></script>
+
+
+<!-- The website -->
+<h1>Cough Detection</h1>
+<h3>Cough Probability: </h3>
+<p id="cough_prob">-</p>
+<div class="box"><div id="cough_box"></div></div>
+
+<h3>Background Noise Probability:</h3>
+<p id="bg_prob">-</p>
+<div class="box"><div id="bg_box"></div></div>
+
+<h3>Time:</h3>
+<p id="timer">0</p>
+<h3>Cough Duration:</h3>
+<p id="cough_count">0</p>
+<div id="box"></div>
+
+<!-- Start Button -->
+<button type="button" onclick="init()">Start</button>
+</div>
+
+<style type="text/css">
+    body{
+        display: flex;
+        flex-direction: column;
+        padding: 1%;
+    }
+
+    button {
+        height: 44px;
+        margin-top:  5%;
+        margin-bottom:  5%;
+    }
+
+    #label-container{
+    }
+
+    #box{
+        width: 1px;
+        height: 20px;
+        background-color: red;
+    }
+
+    #bg_box{
+        width: 1px;
+        height: 20px;
+        background-color: blue;
+    }
+
+    #cough_box{
+         width: 1px;
+        height: 20px;
+        background-color: orange;
+    }
+
+    .box{
+        width: 100px;
+        height: 20px;
+        background-color: lightgrey;
+    }
+
+</style>
+
+
+
+<!-- Timer Module -->
+<script type="text/javascript">
+    var fps = 30;
+    var time = 0;
+    
+    function start_timer(){
+        setInterval(timer_fire, 1000/fps);
+    }
+    
+    // Fired at 30fps
+    function timer_fire(){
+        time += 1;
+        document.getElementById("timer").innerHTML = time;
+        cough_check();
+        update_ui();
+    }
+
+    // Update UI every timer Fire
+    function update_ui(){
+        document.getElementById('cough_prob').innerHTML = cough_prob;
+        document.getElementById('bg_prob').innerHTML = bg_prob;
+        document.getElementById('cough_count').innerHTML = cough_count;
+        document.getElementById("box").style.width = cough_count;
+
+        // Update box
+        document.getElementById("cough_box").style.width = cough_prob * 100;
+        document.getElementById("bg_box").style.width = bg_prob * 100;
+        
+
+    }
+</script>
+
+
+<!-- Feature Extraction -->
+<script type="text/javascript">
+    cough_count = 0;
+    function cough_check(){
+        if (cough_prob >.9) {
+        cough_count += 1;
+    }
+    }
+
+    
+
+</script>
+
+
+
+<!-- AI Module -->
+<script type="text/javascript">
+    var bg_prob;
+	var cough_prob;
+    // more documentation available at
+    // https://github.com/tensorflow/tfjs-models/tree/master/speech-commands
+
+    // the link to your model provided by Teachable Machine export panel
+    const URL = "https://teachablemachine.withgoogle.com/models/4baQ3XF6/";
+
+    async function createModel() {
+        const checkpointURL = URL + "model.json"; // model topology
+        const metadataURL = URL + "metadata.json"; // model metadata
+
+        const recognizer = speechCommands.create(
+            "BROWSER_FFT", // fourier transform type, not useful to change
+            undefined, // speech commands vocabulary feature, not useful for your models
+            checkpointURL,
+            metadataURL);
+
+        // check that model and metadata are loaded via HTTPS requests.
+        await recognizer.ensureModelLoaded();
+
+        return recognizer;
+    }
+
+    async function init() {
+        const recognizer = await createModel();
+
+        
+        // const classLabels = recognizer.wordLabels(); // get class labels
+        // const labelContainer = document.getElementById("label-container");
+        // for (let i = 0; i < classLabels.length; i++) {
+        //     labelContainer.appendChild(document.createElement("div"));
+        // }
+
+        // listen() takes two arguments:
+        // 1. A callback function that is invoked anytime a word is recognized.
+        // 2. A configuration object with adjustable fields
+        recognizer.listen(result => {
+            const scores = result.scores; // probability of prediction for each class
+            
+
+            // identifty shit and assign to globla variable
+            cough_prob = result.scores[0].toFixed(3);
+            bg_prob = result.scores[1].toFixed(3);
+
+
+        }, {
+            includeSpectrogram: true, // in case listen should return result.spectrogram
+            probabilityThreshold: 0.75,
+            invokeCallbackOnNoiseAndUnknown: true,
+            overlapFactor: 0.50 // probably want between 0.5 and 0.75. More info in README
+        });
+        // Stop the recognition in 5 seconds.
+        // setTimeout(() => recognizer.stopListening(), 5000);
+        start_timer();
+    }
+</script>
